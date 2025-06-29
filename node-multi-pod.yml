@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-node-app
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: pod-node-app
+  template:
+    metadata:
+      labels:
+        app: pod-node-app
+    spec:
+      containers:
+      - name: container-node-app
+        image: philippaul/node-mongo-db:04
+        env:
+          - name: MONGO_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: node-mongo-config
+                key: MONGO_HOST
+          - name: MONGO_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: node-mongo-config
+                key: MONGO_PORT
+
+# Below --- treated as a separator between 2 tasks
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  # Unique key of the Service instance
+  name: service-node-app
+spec:
+  ports:
+    # Accept traffic sent to port 80
+    - name: http
+      port: 8081
+      targetPort: 3000
+  selector:
+    # Loadbalance traffic across Pods matching
+    # this label selector
+    app: pod-node-app
+  # Create an HA proxy in the cloud provider
+  # with an External IP address - *Only supported
+  # by some cloud providers*
+  type: LoadBalancer

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-mongodb
+  template:
+    metadata:
+      labels:
+        app: pod-mongodb
+    spec:
+      containers:
+        - name: mongo-db-container
+          image: mongo:latest
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongo-vol
+      volumes:
+        - name: mongo-vol
+          persistentVolumeClaim:
+            claimName: host-pvc
+      
+
+
+# Below --- treated as a separator between 2 tasks
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-mongodb
+spec:
+  ports:
+    - name: tcp
+      port: 27017
+      targetPort: 27017
+  selector:
+    app: pod-mongodb
